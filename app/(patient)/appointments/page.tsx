@@ -11,7 +11,7 @@ import {
   reasonLabel,
 } from "@/lib/clinic";
 import { createClient } from "@/lib/supabase/server";
-import { buttonClass } from "@/constants/ui";
+import { buttonClass, liftClass } from "@/constants";
 
 export const metadata = { title: "My appointments" };
 
@@ -48,7 +48,9 @@ function Row({ a, now }: { a: Appointment; now: number }) {
     upcoming && a.request_status === "pending" && a.request_new_start !== null;
 
   return (
-    <li className="space-y-4 rounded-2xl border border-line bg-surface p-5 shadow-sm">
+    <li
+      className={`space-y-4 rounded-2xl border border-line bg-surface p-5 shadow-sm ${liftClass}`}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-semibold">

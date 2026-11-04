@@ -11,7 +11,10 @@ export default async function Requests({
   const { error, notice } = await searchParams;
   return (
     <>
-      <PageHeader title="Reschedule requests" subtitle="Patients asking to move a visit inside the 24-hour window." />
+      <PageHeader
+        title="Reschedule requests"
+        subtitle="Patients asking to move a visit inside the 24-hour window."
+      />
       <RequestsList returnTo="/admin/requests" error={error} notice={notice} />
     </>
   );

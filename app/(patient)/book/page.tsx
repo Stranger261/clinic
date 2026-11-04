@@ -1,126 +1,146 @@
+import MonthNav from "@/components/calendar/month-nav";
+import PatientCalendar from "@/components/calendar/patient-calendar";
+import { Card, EmptyState, Messages, PageHeader } from "@/components/ui";
+import { buttonClass, inputClass } from "@/constants";
 import {
-  ButtonLink,
-  Card,
-  EmptyState,
-  Messages,
-  PageHeader,
-} from "@/components/ui";
-import { buttonClass, inputClass } from "@/constants/ui";
-import { dayKey, formatDateOnly, formatTime, nowIso } from "@/lib/clinic";
+  daysInMonth,
+  firstOfMonth,
+  isDateKey,
+  resolveMonth,
+} from "@/lib/calendar";
+import { CLINIC_TIME_ZONE, dayKey, nowIso } from "@/lib/clinic";
+import { type CalSlot, dayStats } from "@/lib/slots-state";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Book an appointment" };
 
-type OpenSlot = {
-  slot_id: number;
-  slot_start: string;
-  slot_end: string;
+type DoctorRow = {
   doctor_id: number;
   doctor_name: string;
   department_id: number;
   department_name: string;
 };
 
-const dateRe = /^\d{4}-\d{2}-\d{2}$/;
-
 export default async function BookPage({
   searchParams,
 }: {
-  searchParams: Promise<{ date?: string; department?: string; error?: string }>;
+  searchParams: Promise<{
+    doctor?: string;
+    month?: string;
+    date?: string;
+    error?: string;
+  }>;
 }) {
   const params = await searchParams;
-
-  // The filters live in the URL, so they are shareable and the back button works.
-  // Never trust them: fall back to safe defaults when they look wrong.
-  const today = dayKey(nowIso());
-  const date =
-    params.date && dateRe.test(params.date) && params.date >= today
-      ? params.date
-      : today;
-  const deptNumber = Number(params.department);
-  const department =
-    Number.isInteger(deptNumber) && deptNumber > 0 ? deptNumber : null;
+  // The URL is untrusted: resolveMonth keeps the month in a safe range, and an unknown doctor falls back to the first.
+  const { month, min, max } = resolveMonth(params.month, params.date);
 
   const supabase = await createClient();
-  const [{ data: departments }, { data: slotData }] = await Promise.all([
-    supabase.from("departments").select("id, name").order("name"),
-    supabase.rpc("search_open_slots", {
-      p_date: date,
-      p_department_id: department,
-    }),
-  ]);
-  const slots = (slotData ?? []) as OpenSlot[];
+  const { data: doctorData } = await supabase.rpc("list_doctors");
+  const doctors = (doctorData ?? []) as DoctorRow[];
+  const doctor =
+    doctors.find((d) => d.doctor_id === Number(params.doctor)) ?? doctors[0];
+
+  if (!doctor) {
+    return (
+      <>
+        <PageHeader title="Book an appointment" />
+        <EmptyState>
+          No doctors are available yet. Please check back soon.
+        </EmptyState>
+      </>
+    );
+  }
+
+  const { data: slotData } = await supabase.rpc("calendar_slots", {
+    p_doctor_id: doctor.doctor_id,
+    p_from: firstOfMonth(month),
+    p_days: daysInMonth(month),
+  });
+  const slots = (slotData ?? []) as CalSlot[];
+
+  // Which day to show first: the one in the URL, else the first day that still has an open time.
+  const today = dayKey(nowIso());
+  const stats = dayStats(slots);
+  const requested =
+    isDateKey(params.date) &&
+    params.date.startsWith(month) &&
+    params.date >= today
+      ? params.date
+      : null;
+  const firstOpen = [...stats.entries()]
+    .filter(([, v]) => v.open > 0)
+    .map(([d]) => d)
+    .sort()[0];
+  const defaultDate =
+    requested ??
+    firstOpen ??
+    (today.startsWith(month) ? today : firstOfMonth(month));
+
+  const byDepartment = new Map<string, DoctorRow[]>();
+  for (const d of doctors)
+    byDepartment.set(d.department_name, [
+      ...(byDepartment.get(d.department_name) ?? []),
+      d,
+    ]);
 
   return (
     <>
       <PageHeader
         title="Book an appointment"
-        subtitle="Pick a day and a department to see every open time."
+        subtitle="Choose a doctor, pick a day, then pick a time."
       />
       <Messages error={params.error} />
 
-      {/* A GET form: submitting it puts the choices in the URL, and this page reads them. */}
       <Card>
+        {/* A GET form: the choices go in the URL, and this page reads them. */}
         <form method="get" className="flex flex-wrap items-end gap-4">
+          <input type="hidden" name="month" value={month} />
           <label className="text-sm font-medium">
-            <span className="mb-1.5 block">Date</span>
-            <input
-              type="date"
-              name="date"
-              defaultValue={date}
-              min={today}
-              className={inputClass}
-            />
-          </label>
-          <label className="text-sm font-medium">
-            <span className="mb-1.5 block">Department</span>
+            <span className="mb-1.5 block">Doctor</span>
             <select
-              name="department"
-              defaultValue={department ?? ""}
+              name="doctor"
+              defaultValue={doctor.doctor_id}
               className={inputClass}
             >
-              <option value="">All departments</option>
-              {(departments ?? []).map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
+              {[...byDepartment.entries()].map(([department, list]) => (
+                <optgroup key={department} label={department}>
+                  {list.map((d) => (
+                    <option key={d.doctor_id} value={d.doctor_id}>
+                      {d.doctor_name || "Doctor"}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </select>
           </label>
-          <button className={buttonClass()}>Show open slots</button>
+          <button className={buttonClass()}>Show calendar</button>
         </form>
       </Card>
 
-      <h2 className="mb-3 mt-8 font-semibold">{formatDateOnly(date)}</h2>
-      {slots.length === 0 ? (
-        <EmptyState>
-          No open slots for this date. Try another date or department.
-        </EmptyState>
-      ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
-          {slots.map((s) => (
-            <li
-              key={s.slot_id}
-              className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface p-4 shadow-sm"
-            >
-              <div>
-                <p className="font-semibold">
-                  {formatTime(s.slot_start)} to {formatTime(s.slot_end)}
-                </p>
-                <p className="text-sm text-muted">
-                  {s.doctor_name || "Doctor"}, {s.department_name}
-                </p>
-              </div>
-              <ButtonLink
-                href={`/book/confirm?slot=${s.slot_id}&date=${date}&department=${department ?? ""}`}
-                size="sm"
-              >
-                Book
-              </ButtonLink>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="mb-3 mt-6">
+        <MonthNav
+          basePath="/book"
+          extra={{ doctor: String(doctor.doctor_id) }}
+          month={month}
+          minMonth={min}
+          maxMonth={max}
+        />
+        <p className="mt-1 text-xs text-muted">
+          {doctor.doctor_name || "Doctor"}, {doctor.department_name}. All times
+          are clinic time ({CLINIC_TIME_ZONE}).
+        </p>
+      </div>
+
+      {/* The key makes a new doctor or month start fresh; changes inside the month update live. */}
+      <PatientCalendar
+        key={`${doctor.doctor_id}-${month}`}
+        doctorId={doctor.doctor_id}
+        month={month}
+        initialSlots={slots}
+        defaultDate={defaultDate}
+        today={today}
+      />
     </>
   );
 }

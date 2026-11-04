@@ -5,27 +5,60 @@ import { ButtonLink, Card } from "@/components/ui";
 import { getProfile } from "@/lib/auth";
 import { BRAND, SERVICES } from "@/lib/brand";
 import { demoEnabled } from "@/lib/demo";
+import { liftClass } from "@/constants";
+import Faq from "@/components/faq";
 
 const STEPS = [
-  { title: "Choose a day", text: "Pick a date and a department to see every open time across our doctors." },
-  { title: "Pick a time", text: "Select a slot and tell us why you are visiting, in a few clicks." },
-  { title: "Manage it online", text: "See your appointments, cancel, or ask to reschedule from your account." },
+  {
+    title: "Choose a day",
+    text: "Pick a date and a department to see every open time across our doctors.",
+  },
+  {
+    title: "Pick a time",
+    text: "Select a slot and tell us why you are visiting, in a few clicks.",
+  },
+  {
+    title: "Manage it online",
+    text: "See your appointments, cancel, or ask to reschedule from your account.",
+  },
 ];
 
 const FEATURES = [
-  { title: "Open times at a glance", text: "Only slots that are really free are shown, so there is no back and forth." },
-  { title: "Flexible when plans change", text: "Cancel up to 24 hours before. Inside that window, request an urgent reschedule for staff to review." },
-  { title: "Your doctor is prepared", text: "Choose a reason for the visit and add a short note, so your doctor knows what to expect." },
+  {
+    title: "Open times at a glance",
+    text: "Only slots that are really free are shown, so there is no back and forth.",
+  },
+  {
+    title: "Flexible when plans change",
+    text: "Cancel up to 24 hours before. Inside that window, request an urgent reschedule for staff to review.",
+  },
+  {
+    title: "Your doctor is prepared",
+    text: "Choose a reason for the visit and add a short note, so your doctor knows what to expect.",
+  },
 ];
 
 const FAQ = [
-  { q: "Can I cancel or change my appointment?", a: "You can cancel up to 24 hours before the visit. Closer than that, you can send an emergency reschedule request with a reason, and a doctor or admin will review it." },
-  { q: "Do I need an account to book?", a: "Yes, you sign in so your appointments stay private and easy to manage. In the demo, you can try every role without an account." },
-  { q: "How do follow-up visits work?", a: "Your doctor advises when to come back during your visit. You then book the exact time yourself." },
-  { q: "Is this a real clinic?", a: "No. This is a demo project with fake data. Please do not enter real personal or medical information." },
+  {
+    q: "Can I cancel or change my appointment?",
+    a: "You can cancel up to 24 hours before the visit. Closer than that, you can send an emergency reschedule request with a reason, and a doctor or admin will review it.",
+  },
+  {
+    q: "Do I need an account to book?",
+    a: "Yes, you sign in so your appointments stay private and easy to manage. In the demo, you can try every role without an account.",
+  },
+  {
+    q: "How do follow-up visits work?",
+    a: "Your doctor advises when to come back during your visit. You then book the exact time yourself.",
+  },
+  {
+    q: "Is this a real clinic?",
+    a: "No. This is a demo project with fake data. Please do not enter real personal or medical information.",
+  },
 ];
 
-const dashboardFor = (role: string) => (role === "admin" ? "/admin" : role === "doctor" ? "/doctor" : "/book");
+const dashboardFor = (role: string) =>
+  role === "admin" ? "/admin" : role === "doctor" ? "/doctor" : "/book";
 
 export default async function Home() {
   const profile = await getProfile();
@@ -40,33 +73,56 @@ export default async function Home() {
             <Logo />
           </Link>
           <div className="hidden items-center gap-6 text-sm text-muted md:flex">
-            <a href="#how" className="hover:text-ink">How it works</a>
-            <a href="#departments" className="hover:text-ink">Departments</a>
-            <a href="#faq" className="hover:text-ink">FAQ</a>
+            <a href="#how" className="hover:text-ink">
+              How it works
+            </a>
+            <a href="#departments" className="hover:text-ink">
+              Departments
+            </a>
+            <a href="#faq" className="hover:text-ink">
+              FAQ
+            </a>
           </div>
-          <ButtonLink href={primaryHref}>{profile ? "Go to your account" : demo ? "Try the demo" : "Sign in"}</ButtonLink>
+          <ButtonLink href={primaryHref}>
+            {profile ? "Go to your account" : demo ? "Try the demo" : "Sign in"}
+          </ButtonLink>
         </nav>
       </header>
 
       <main>
         <section className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-16 lg:grid-cols-2 lg:py-24">
           <div>
-            <p className="text-sm font-semibold text-brand-700">{BRAND.tagline}</p>
+            <p className="text-sm font-semibold text-brand-700">
+              {BRAND.tagline}
+            </p>
             <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
               Book your clinic visit in a few clicks.
             </h1>
             <p className="mt-5 max-w-lg text-lg text-muted">
-              Find an open time, tell your doctor why you are coming, and manage everything online.
+              Find an open time, tell your doctor why you are coming, and manage
+              everything online.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <ButtonLink href={primaryHref}>{profile ? "Book an appointment" : demo ? "Try the demo" : "Book an appointment"}</ButtonLink>
-              <ButtonLink href="#how" variant="secondary">See how it works</ButtonLink>
+              <ButtonLink href={primaryHref}>
+                {profile
+                  ? "Book an appointment"
+                  : demo
+                    ? "Try the demo"
+                    : "Book an appointment"}
+              </ButtonLink>
+              <ButtonLink href="#how" variant="secondary">
+                See how it works
+              </ButtonLink>
             </div>
           </div>
 
           <div className="relative">
-            <div className="relative aspect-[4/3] overflow-hidden rounded-3xl bg-gradient-to-br from-brand-100 via-brand-200 to-brand-300 shadow-lg">
-              <SafeImage src="/images/hero.jpg" alt="A calm, welcoming clinic reception" priority />
+            <div className="relative aspect-4/3 overflow-hidden rounded-3xl bg-linear-to-br from-brand-100 via-brand-200 to-brand-300 shadow-lg">
+              <SafeImage
+                src="/images/hero.jpg"
+                alt="A calm, welcoming clinic reception"
+                priority
+              />
             </div>
             <div className="absolute -bottom-5 left-5 rounded-2xl border border-line bg-surface px-4 py-3 text-sm shadow-md">
               <p className="font-semibold">Free cancellation</p>
@@ -75,13 +131,20 @@ export default async function Home() {
           </div>
         </section>
 
-        <section id="how" className="scroll-mt-20 border-y border-line bg-surface">
+        <section
+          id="how"
+          className="scroll-mt-20 border-y border-line bg-surface"
+        >
           <div className="mx-auto max-w-6xl px-5 py-16">
-            <h2 className="text-3xl font-semibold tracking-tight">How it works</h2>
+            <h2 className="text-3xl font-semibold tracking-tight">
+              How it works
+            </h2>
             <ol className="mt-8 grid gap-6 md:grid-cols-3">
               {STEPS.map((s, i) => (
                 <li key={s.title} className="flex gap-4">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-100 font-semibold text-brand-700">{i + 1}</span>
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-100 font-semibold text-brand-700">
+                    {i + 1}
+                  </span>
                   <div>
                     <h3 className="font-semibold">{s.title}</h3>
                     <p className="mt-1 text-muted">{s.text}</p>
@@ -95,7 +158,7 @@ export default async function Home() {
         <section className="mx-auto max-w-6xl px-5 py-16">
           <div className="grid gap-5 md:grid-cols-3">
             {FEATURES.map((f) => (
-              <Card key={f.title}>
+              <Card key={f.title} lift>
                 <h3 className="font-semibold">{f.title}</h3>
                 <p className="mt-2 text-muted">{f.text}</p>
               </Card>
@@ -103,12 +166,20 @@ export default async function Home() {
           </div>
         </section>
 
-        <section id="departments" className="scroll-mt-20 border-y border-line bg-surface">
+        <section
+          id="departments"
+          className="scroll-mt-20 border-y border-line bg-surface"
+        >
           <div className="mx-auto max-w-6xl px-5 py-16">
-            <h2 className="text-3xl font-semibold tracking-tight">Our departments</h2>
+            <h2 className="text-3xl font-semibold tracking-tight">
+              Our departments
+            </h2>
             <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {SERVICES.map((s) => (
-                <div key={s.title} className="rounded-2xl bg-brand-50 p-5">
+                <div
+                  key={s.title}
+                  className={`rounded-2xl border border-transparent bg-brand-50 p-5 ${liftClass}`}
+                >
                   <h3 className="font-semibold text-brand-800">{s.title}</h3>
                   <p className="mt-1 text-sm text-muted">{s.text}</p>
                 </div>
@@ -119,26 +190,29 @@ export default async function Home() {
 
         <section id="faq" className="mx-auto max-w-3xl scroll-mt-20 px-5 py-16">
           <h2 className="text-3xl font-semibold tracking-tight">Questions</h2>
-          <div className="mt-8 divide-y divide-line rounded-2xl border border-line bg-surface">
-            {FAQ.map((item) => (
-              <details key={item.q} className="group p-5">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold [&::-webkit-details-marker]:hidden">
-                  {item.q}
-                  <span aria-hidden className="text-brand-600 transition group-open:rotate-45">+</span>
-                </summary>
-                <p className="mt-3 text-muted">{item.a}</p>
-              </details>
-            ))}
+          <div className="mt-8">
+            <Faq items={FAQ} />
           </div>
         </section>
 
         <section className="mx-auto max-w-6xl px-5 pb-20">
           <div className="rounded-3xl bg-brand-600 px-8 py-12 text-center text-white">
-            <h2 className="text-3xl font-semibold tracking-tight">Ready when you are</h2>
-            <p className="mx-auto mt-3 max-w-md text-brand-100">Find a time that works for you in under a minute.</p>
+            <h2 className="text-3xl font-semibold tracking-tight">
+              Ready when you are
+            </h2>
+            <p className="mx-auto mt-3 max-w-md text-brand-100">
+              Find a time that works for you in under a minute.
+            </p>
             <div className="mt-6">
-              <Link href={primaryHref} className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-brand-700 transition hover:bg-brand-50">
-                {profile ? "Book an appointment" : demo ? "Try the demo" : "Sign in to book"}
+              <Link
+                href={primaryHref}
+                className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-brand-700 transition hover:bg-brand-50"
+              >
+                {profile
+                  ? "Book an appointment"
+                  : demo
+                    ? "Try the demo"
+                    : "Sign in to book"}
               </Link>
             </div>
           </div>
@@ -150,10 +224,13 @@ export default async function Home() {
           <div>
             <Logo />
             <p className="mt-2 max-w-md">
-              This is a demo project with fake data. It is not a real clinic, so please do not enter real personal or medical information.
+              This is a demo project with fake data. It is not a real clinic, so
+              please do not enter real personal or medical information.
             </p>
           </div>
-          <p>{BRAND.email} · {BRAND.phone}</p>
+          <p>
+            {BRAND.email} · {BRAND.phone}
+          </p>
         </div>
       </footer>
     </>

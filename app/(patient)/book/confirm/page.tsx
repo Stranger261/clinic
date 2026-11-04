@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LiveRefresh from "@/components/live-refresh";
 import SubmitButton from "@/components/submit-button";
 import { Card, EmptyState, Messages, PageHeader } from "@/components/ui";
 import { bookSlot } from "@/lib/actions/patient";
@@ -9,7 +10,7 @@ import {
   formatTime,
 } from "@/lib/clinic";
 import { createClient } from "@/lib/supabase/server";
-import { inputClass } from "@/constants/ui";
+import { inputClass } from "@/constants";
 
 export const metadata = { title: "Confirm your appointment" };
 
@@ -25,8 +26,8 @@ export default async function ConfirmPage({
 }: {
   searchParams: Promise<{
     slot?: string;
+    doctor?: string;
     date?: string;
-    department?: string;
     error?: string;
   }>;
 }) {
@@ -34,22 +35,26 @@ export default async function ConfirmPage({
 
   // Treat everything in the URL as untrusted.
   const slotId = Number(params.slot);
+  const validSlot = Number.isInteger(slotId) && slotId > 0;
+  const doctor =
+    params.doctor && /^\d+$/.test(params.doctor) ? params.doctor : "";
   const date =
     params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date) ? params.date : "";
-  const department =
-    params.department && /^\d+$/.test(params.department)
-      ? params.department
-      : "";
-  const back = `/book?date=${date}&department=${department}`;
+  const back = `/book?doctor=${doctor}&date=${date}`;
 
   let slot: SlotDetails | undefined;
-  if (Number.isInteger(slotId) && slotId > 0) {
+  if (validSlot) {
     const supabase = await createClient();
     const { data } = await supabase.rpc("open_slot_details", {
       p_slot_id: slotId,
     });
     slot = ((data ?? []) as SlotDetails[])[0];
   }
+
+  // Listen only to this one slot. If it changes, this page re-checks it in place (no browser reload).
+  const live = validSlot ? (
+    <LiveRefresh table="slots" filter={`id=eq.${slotId}`} showStatus={false} />
+  ) : null;
 
   if (!slot) {
     return (
@@ -58,17 +63,19 @@ export default async function ConfirmPage({
         <EmptyState>
           That slot was just taken or is no longer open.{" "}
           <Link href={back} className="font-semibold text-brand-700 underline">
-            Back to open slots
+            Back to the calendar
           </Link>
         </EmptyState>
+        {live}
       </>
     );
   }
 
   return (
     <div className="mx-auto max-w-xl">
+      {live}
       <Link href={back} className="text-sm text-muted hover:text-ink">
-        Back to open slots
+        Back to the calendar
       </Link>
       <div className="mt-4">
         <PageHeader title="Confirm your appointment" />
@@ -88,8 +95,8 @@ export default async function ConfirmPage({
 
       <form action={bookSlot} className="space-y-6">
         <input type="hidden" name="slotId" value={slotId} />
+        <input type="hidden" name="doctor" value={doctor} />
         <input type="hidden" name="date" value={date} />
-        <input type="hidden" name="department" value={department} />
 
         <fieldset>
           <legend className="font-semibold">Reason for the visit</legend>
@@ -97,7 +104,7 @@ export default async function ConfirmPage({
             {Object.entries(VISIT_REASONS).map(([value, label]) => (
               <label
                 key={value}
-                className="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface p-4 transition hover:border-brand-300 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50"
+                className="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface p-4 transition hover:border-brand-300 has-:checked:border-brand-600 has-:checked:bg-brand-50"
               >
                 <input
                   type="radio"

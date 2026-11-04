@@ -1,11 +1,12 @@
 export type Variant = "primary" | "secondary" | "ghost" | "danger";
-export type Size = "md" | "sm";
+export type Size = "md" | "sm" | "xs";
 
 export const base =
   "inline-flex items-center justify-center rounded-full font-semibold transition disabled:opacity-50";
-export const sizes: Record<Size, string> = {
+const sizes: Record<Size, string> = {
   md: "min-h-11 px-5 text-sm",
   sm: "min-h-10 px-4 text-sm sm:min-h-9",
+  xs: "min-h-8 px-2.5 text-xs",
 };
 export const variants: Record<Variant, string> = {
   primary: "bg-brand-600 text-white hover:bg-brand-700",
@@ -34,3 +35,6 @@ export const badges = {
   blocked: "bg-slate-200 text-slate-700",
   cancelled: "bg-slate-200 text-slate-700",
 } as const;
+
+export const liftClass =
+  "transition-[transform,box-shadow,border-color] duration-200 ease-out hover:-translate-y-1 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-600/10 motion-reduce:hover:translate-y-0";

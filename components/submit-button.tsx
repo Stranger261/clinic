@@ -1,7 +1,7 @@
 "use client";
 
+import { buttonClass } from "@/constants";
 import { useFormStatus } from "react-dom";
-import { buttonClass } from "@/constants/ui";
 
 type Props = {
   children: React.ReactNode;
@@ -11,6 +11,7 @@ type Props = {
   className?: string;
   raw?: boolean; // use className exactly as given, with no button styles
   spinner?: boolean;
+  title?: string;
 };
 
 // A submit button that disables itself while its form is being sent, so a second click
@@ -24,6 +25,7 @@ export default function SubmitButton({
   className = "",
   raw = false,
   spinner = true,
+  title,
 }: Props) {
   const { pending } = useFormStatus();
   const styles = raw ? className : `${buttonClass(variant, size)} ${className}`;
@@ -33,6 +35,7 @@ export default function SubmitButton({
       type="submit"
       disabled={pending}
       aria-disabled={pending}
+      title={title}
       className={`${styles} ${pending ? "cursor-wait opacity-70" : ""}`}
     >
       {pending && spinner && <Spinner />}

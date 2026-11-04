@@ -5,7 +5,7 @@ import { EmptyState, Messages, PageHeader } from "@/components/ui";
 import { requestReschedule } from "@/lib/actions/reschedule";
 import { formatDay, formatTime } from "@/lib/clinic";
 import { createClient } from "@/lib/supabase/server";
-import { inputClass } from "@/constants/ui";
+import { inputClass } from "@/constants";
 
 export const metadata = { title: "Request a reschedule" };
 
@@ -57,7 +57,7 @@ export default async function ReschedulePage({
             <ul className="mt-3 max-h-80 space-y-2 overflow-y-auto pr-1">
               {options.map((o) => (
                 <li key={o.slot_id}>
-                  <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface p-3.5 transition hover:border-brand-300 has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface p-3.5 transition hover:border-brand-300 has-:checked:border-brand-600 has-:checked:bg-brand-50">
                     <input
                       type="radio"
                       name="newSlotId"

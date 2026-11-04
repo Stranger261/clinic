@@ -1,24 +1,26 @@
 "use server";
 
-import z from "zod";
-import { NOTE_MAX_LENGTH, VISIT_REASONS, VisitReason } from "../clinic";
-import { redirect } from "next/navigation";
-import { requireRole } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
+import { requireRole } from "@/lib/auth";
+import { NOTE_MAX_LENGTH, VISIT_REASONS, type VisitReason } from "@/lib/clinic";
+import { createClient } from "@/lib/supabase/server";
 
 const idInput = z.coerce.number().int().positive();
 
 const whereInput = z.object({
   slotId: idInput,
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  department: z.string().regex(/^\d*$/),
+  doctor: z.string().regex(/^\d*$/),
+  date: z.string().regex(/^(\d{4}-\d{2}-\d{2})?$/),
 });
 
 const detailInput = z.object({
   reason: z.enum(
     Object.keys(VISIT_REASONS) as [VisitReason, ...VisitReason[]],
-    { message: "Please choose a reason for the visit." },
+    {
+      message: "Please choose a reason for the visit.",
+    },
   ),
   note: z
     .string()
@@ -31,25 +33,24 @@ const detailInput = z.object({
 
 const enc = encodeURIComponent;
 
-export const bookSlot = async (formData: FormData) => {
+export async function bookSlot(formData: FormData) {
   await requireRole(["patient"]);
 
   const where = whereInput.safeParse({
     slotId: formData.get("slotId"),
-    date: formData.get("date"),
-    department: formData.get("department") ?? "",
+    doctor: formData.get("doctor") ?? "",
+    date: formData.get("date") ?? "",
   });
-
   if (!where.success) redirect(`/book?error=${enc("Invalid request.")}`);
 
-  const search = `date=${where.data.date}&department=${where.data.department}`;
+  const search = `doctor=${where.data.doctor}&date=${where.data.date}`;
   const confirmUrl = `/book/confirm?slot=${where.data.slotId}&${search}`;
 
+  // A problem with what they typed: send them back to the confirmation step.
   const detail = detailInput.safeParse({
     reason: formData.get("reason"),
     note: formData.get("note") ?? "",
   });
-
   if (!detail.success)
     redirect(`${confirmUrl}&error=${enc(detail.error.issues[0].message)}`);
 
@@ -61,6 +62,7 @@ export const bookSlot = async (formData: FormData) => {
   });
 
   if (error) {
+    // P0001 = a rule we wrote (safe to show). 23505 = the one-confirmed-per-slot safety net.
     const message =
       error.code === "P0001"
         ? error.message
@@ -72,9 +74,9 @@ export const bookSlot = async (formData: FormData) => {
 
   revalidatePath("/appointments");
   redirect(`/appointments?notice=${enc("Your appointment is booked.")}`);
-};
+}
 
-export const cancelAppointment = async (formData: FormData) => {
+export async function cancelAppointment(formData: FormData) {
   await requireRole(["patient"]);
 
   const parsed = idInput.safeParse(formData.get("id"));
@@ -96,4 +98,4 @@ export const cancelAppointment = async (formData: FormData) => {
 
   revalidatePath("/appointments");
   redirect(`/appointments?notice=${enc("Your appointment was cancelled.")}`);
-};
+}

@@ -1,6 +1,6 @@
 import SubmitButton from "@/components/submit-button";
 import { Card, EmptyState, Messages, PageHeader } from "@/components/ui";
-import { inputClass } from "@/constants/ui";
+import { inputClass } from "@/constants";
 import { assignDoctor, removeDoctor } from "@/lib/actions/admin";
 import { createClient } from "@/lib/supabase/server";
 
