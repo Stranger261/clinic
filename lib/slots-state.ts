@@ -5,13 +5,20 @@ import { dayKey } from "@/lib/clinic";
 
 export type SlotStatus = "open" | "booked" | "held" | "blocked";
 
-export type CalSlot = { slot_id: number; slot_start: string; slot_end: string; slot_status: SlotStatus };
+export type CalSlot = {
+  slot_id: number;
+  slot_start: string;
+  slot_end: string;
+  slot_status: SlotStatus;
+};
 
 export const toMap = <T extends { slot_id: number }>(rows: T[]) =>
   new Map<number, T>(rows.map((r) => [r.slot_id, r] as [number, T]));
 
 // How many slots are open, and how many there are in total, for each clinic-local day.
-export function dayStats(slots: Iterable<{ slot_start: string; slot_status: string }>) {
+export function dayStats(
+  slots: Iterable<{ slot_start: string; slot_status: string }>,
+) {
   const stats = new Map<string, { open: number; total: number }>();
   for (const s of slots) {
     const key = dayKey(s.slot_start);
@@ -75,4 +82,23 @@ export function applyChange(
     slot_status: row.status as SlotStatus,
   });
   return next;
+}
+
+// True when a slot that was open is now taken (or held or blocked) and it is on the given day.
+// The patient calendar uses this to tell the person looking at that day, "this time was just taken".
+export function justBecameUnavailable(
+  before: Map<number, CalSlot>,
+  after: Map<number, CalSlot>,
+  id: number,
+  day: string,
+) {
+  const was = before.get(id);
+  const now = after.get(id);
+  return Boolean(
+    was &&
+    now &&
+    was.slot_status === "open" &&
+    now.slot_status !== "open" &&
+    dayKey(now.slot_start) === day,
+  );
 }

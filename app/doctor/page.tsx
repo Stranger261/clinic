@@ -1,12 +1,11 @@
-import DoctorCalendar, {
-  type DoctorSlot,
-} from "@/components/calendar/doctor-calendar";
+import DoctorCalendar from "@/components/calendar/doctor-calendar";
 import MonthNav from "@/components/calendar/month-nav";
 import { EmptyState, Messages, PageHeader } from "@/components/ui";
 import { firstOfMonth, lastOfMonth, resolveMonth } from "@/lib/calendar";
 import { dayKey, nowIso } from "@/lib/clinic";
 import { getProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { DoctorSlot } from "@/constants/calendar";
 
 export const metadata = { title: "My schedule" };
 
@@ -16,7 +15,8 @@ export default async function DoctorHome({
   searchParams: Promise<{ error?: string; notice?: string; month?: string }>;
 }) {
   const { error, notice, month: monthParam } = await searchParams;
-  const { month, min, max } = resolveMonth(monthParam);
+  // The doctor can look back one month, to close recent visits.
+  const { month, min, max, current } = resolveMonth(monthParam, undefined, 1);
 
   const profile = await getProfile();
   const supabase = await createClient();
@@ -54,7 +54,7 @@ export default async function DoctorHome({
     <>
       <PageHeader
         title="My schedule"
-        subtitle="Pick a day to add slots and see who booked. It updates live."
+        subtitle="Pick a day to add slots, see who booked, and record how visits went. It updates live."
       />
       <Messages error={error} notice={notice} />
 
@@ -64,6 +64,7 @@ export default async function DoctorHome({
           month={month}
           minMonth={min}
           maxMonth={max}
+          currentMonth={current}
         />
       </div>
 

@@ -1,7 +1,13 @@
+import Link from "next/link";
 import MonthNav from "@/components/calendar/month-nav";
 import PatientCalendar from "@/components/calendar/patient-calendar";
-import { Card, EmptyState, Messages, PageHeader } from "@/components/ui";
-import { buttonClass, inputClass } from "@/constants";
+import {
+  Card,
+  EmptyState,
+  Messages,
+  Notice,
+  PageHeader,
+} from "@/components/ui";
 import {
   daysInMonth,
   firstOfMonth,
@@ -11,6 +17,7 @@ import {
 import { CLINIC_TIME_ZONE, dayKey, nowIso } from "@/lib/clinic";
 import { type CalSlot, dayStats } from "@/lib/slots-state";
 import { createClient } from "@/lib/supabase/server";
+import { buttonClass, inputClass } from "@/constants";
 
 export const metadata = { title: "Book an appointment" };
 
@@ -38,6 +45,9 @@ export default async function BookPage({
   const supabase = await createClient();
   const { data: doctorData } = await supabase.rpc("list_doctors");
   const doctors = (doctorData ?? []) as DoctorRow[];
+  const { data: profileComplete } = await supabase.rpc(
+    "patient_profile_complete",
+  );
   const doctor =
     doctors.find((d) => d.doctor_id === Number(params.doctor)) ?? doctors[0];
 
@@ -91,6 +101,19 @@ export default async function BookPage({
         subtitle="Choose a doctor, pick a day, then pick a time."
       />
       <Messages error={params.error} />
+      {profileComplete !== true && (
+        <div className="mb-6">
+          <Notice kind="info">
+            Before you can book, we need a few details about you.{" "}
+            <Link
+              href="/profile?next=/book"
+              className="font-semibold underline"
+            >
+              Complete your profile
+            </Link>
+          </Notice>
+        </div>
+      )}
 
       <Card>
         {/* A GET form: the choices go in the URL, and this page reads them. */}

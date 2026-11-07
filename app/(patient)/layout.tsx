@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 const links = [
   { href: "/book", label: "Book" },
   { href: "/appointments", label: "My appointments" },
+  { href: "/profile", label: "Profile" },
 ];
 
 export default async function PatientLayout({

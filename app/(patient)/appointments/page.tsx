@@ -34,6 +34,7 @@ type Appointment = {
   request_note: string | null;
   visit_reason: string | null;
   visit_note: string | null;
+  outcome: "completed" | "no_show" | null;
 };
 
 function Row({ a, now }: { a: Appointment; now: number }) {
@@ -66,7 +67,7 @@ function Row({ a, now }: { a: Appointment; now: number }) {
             {a.visit_note ? ` (${a.visit_note})` : ""}
           </p>
         </div>
-        <StatusBadge status={a.status} />
+        <StatusBadge status={a.outcome ?? a.status} />
       </div>
 
       {!pending && canCancel && (

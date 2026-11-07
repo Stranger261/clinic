@@ -11,10 +11,12 @@ export default function GoogleButton() {
     if (pending) return;
     setPending(true);
     const supabase = createClient();
+    console.log("lpogging in");
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     });
+    console.log(error);
     // On success the browser leaves this page. If it failed, allow another try.
     if (error) setPending(false);
   }

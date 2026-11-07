@@ -11,6 +11,7 @@ import {
   type SlotChange,
   applyChange,
   dayStats,
+  justBecameUnavailable,
   toMap,
 } from "@/lib/slots-state";
 import { createClient } from "@/lib/supabase/client";
@@ -42,10 +43,32 @@ export default function PatientCalendar({
 
   const [selected, setSelected] = useState(defaultDate);
   const [live, setLive] = useState(false);
+  // A time on the day being viewed that someone else just took (shown briefly).
+  const [justTaken, setJustTaken] = useState<{
+    id: number;
+    time: string;
+    date: string;
+  } | null>(null);
+
+  // Refs let the live handler read the latest values without re-subscribing every time they change.
   const liveRef = useRef(false);
+  const slotsRef = useRef(slots);
+  const selectedRef = useRef(selected);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    slotsRef.current = slots;
+  }, [slots]);
+  useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected]);
 
   useEffect(() => {
     const supabase = createClient();
+
+    const commit = (next: Map<number, CalSlot>) => {
+      slotsRef.current = next;
+      setSlots(next);
+    };
 
     // Ask the database for the truth. Used when the live connection starts, restarts, or is down.
     const refetch = async () => {
@@ -54,7 +77,7 @@ export default function PatientCalendar({
         p_from: first,
         p_days: days,
       });
-      if (data) setSlots(toMap(data as CalSlot[]));
+      if (data) commit(toMap(data as CalSlot[]));
     };
 
     // One "room" per doctor: we only hear about this doctor's slots. Each event patches the screen directly,
@@ -70,14 +93,28 @@ export default function PatientCalendar({
           filter: `doctor_id=eq.${doctorId}`,
         },
         (payload) => {
-          setSlots((current) =>
-            applyChange(
-              current,
-              payload as unknown as SlotChange,
-              { from: first, to: last },
-              Date.now(),
-            ),
+          const change = payload as unknown as SlotChange;
+          const before = slotsRef.current;
+          const after = applyChange(
+            before,
+            change,
+            { from: first, to: last },
+            Date.now(),
           );
+
+          // If a time on the day this patient is looking at was just taken, tell them and highlight it.
+          const id = Number(change.new?.id);
+          if (justBecameUnavailable(before, after, id, selectedRef.current)) {
+            const slot = after.get(id)!;
+            setJustTaken({
+              id,
+              time: formatTime(slot.slot_start),
+              date: selectedRef.current,
+            });
+            if (noticeTimer.current) clearTimeout(noticeTimer.current);
+            noticeTimer.current = setTimeout(() => setJustTaken(null), 6000);
+          }
+          commit(after);
         },
       )
       .subscribe((status) => {
@@ -94,15 +131,18 @@ export default function PatientCalendar({
 
     return () => {
       clearInterval(fallback);
+      if (noticeTimer.current) clearTimeout(noticeTimer.current);
       supabase.removeChannel(channel);
     };
   }, [doctorId, first, last, days]);
 
   const stats = dayStats(slots.values());
   const dayStat = stats.get(selected) ?? { open: 0, total: 0 };
+  const fullyBooked = dayStat.total > 0 && dayStat.open === 0;
   const list = [...slots.values()]
     .filter((s) => dayKey(s.slot_start) === selected)
     .sort((a, b) => Date.parse(a.slot_start) - Date.parse(b.slot_start));
+  const notice = justTaken && justTaken.date === selected ? justTaken : null;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
@@ -131,10 +171,32 @@ export default function PatientCalendar({
             : `${dayStat.open} of ${dayStat.total} times open`}
         </p>
 
+        {fullyBooked && (
+          <p
+            role="alert"
+            className="mt-3 rounded-xl bg-red-50 p-3 text-sm text-red-800"
+          >
+            This date is fully booked. Every time has already been taken, so
+            please pick another day.
+          </p>
+        )}
+        {notice && (
+          <p
+            role="status"
+            className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-900"
+          >
+            {notice.time} was just taken by someone else.
+          </p>
+        )}
+
         {list.length > 0 && (
           <ul className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4">
             {list.map((s) => {
               const time = formatTime(s.slot_start);
+              const flash =
+                notice?.id === s.slot_id
+                  ? "ring-2 ring-red-300 ring-offset-1"
+                  : "";
               if (s.slot_status === "open") {
                 return (
                   <li key={s.slot_id}>
@@ -152,7 +214,7 @@ export default function PatientCalendar({
                 <li key={s.slot_id}>
                   <span
                     aria-label={`${time}, ${held ? "held" : "taken"}`}
-                    className={`block rounded-lg px-2 py-2.5 text-center text-sm ${
+                    className={`block rounded-lg px-2 py-2.5 text-center text-sm transition ${flash} ${
                       held
                         ? "bg-amber-50 text-amber-800"
                         : "bg-slate-100 text-slate-400 line-through"

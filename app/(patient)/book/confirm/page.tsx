@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import LiveRefresh from "@/components/live-refresh";
 import SubmitButton from "@/components/submit-button";
 import { Card, EmptyState, Messages, PageHeader } from "@/components/ui";
@@ -45,6 +46,15 @@ export default async function ConfirmPage({
   let slot: SlotDetails | undefined;
   if (validSlot) {
     const supabase = await createClient();
+
+    // No complete profile yet: fill it in first, then come straight back to this step.
+    const { data: complete } = await supabase.rpc("patient_profile_complete");
+    if (complete !== true) {
+      redirect(
+        `/profile?next=${encodeURIComponent(`/book/confirm?slot=${slotId}&doctor=${doctor}&date=${date}`)}`,
+      );
+    }
+
     const { data } = await supabase.rpc("open_slot_details", {
       p_slot_id: slotId,
     });
@@ -104,7 +114,7 @@ export default async function ConfirmPage({
             {Object.entries(VISIT_REASONS).map(([value, label]) => (
               <label
                 key={value}
-                className="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface p-4 transition hover:border-brand-300 has-:checked:border-brand-600 has-:checked:bg-brand-50"
+                className="flex cursor-pointer items-center gap-3 rounded-xl border border-line bg-surface p-4 transition hover:border-brand-300 has-checked:border-brand-600 has-checked:bg-brand-50"
               >
                 <input
                   type="radio"

@@ -65,17 +65,22 @@ export function monthCells(month: string): (string | null)[] {
   ];
 }
 
-// Turns ?month= (or ?date=) from the URL into a safe month: not in the past, at most 6 months ahead.
-export function resolveMonth(requestedMonth?: string, requestedDate?: string) {
-  const min = monthOf(dayKey(nowIso()));
-  const max = addMonths(min, 6);
+// Turns ?month= (or ?date=) from the URL into a safe month: at most monthsBack in the past, 6 months ahead.
+export function resolveMonth(
+  requestedMonth?: string,
+  requestedDate?: string,
+  monthsBack = 0,
+) {
+  const current = monthOf(dayKey(nowIso()));
+  const min = addMonths(current, -monthsBack);
+  const max = addMonths(current, 6);
   const wanted = isMonthKey(requestedMonth)
     ? requestedMonth
     : isDateKey(requestedDate)
       ? monthOf(requestedDate)
-      : min;
+      : current;
   const month = wanted < min ? min : wanted > max ? max : wanted;
-  return { month, min, max };
+  return { month, min, max, current };
 }
 
 // ---------- labels ----------

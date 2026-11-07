@@ -9,13 +9,16 @@ export default function MonthNav({
   month,
   minMonth,
   maxMonth,
+  currentMonth,
 }: {
   basePath: string;
   extra?: Record<string, string>;
   month: string;
   minMonth: string;
   maxMonth: string;
+  currentMonth?: string; // the month that "This month" jumps to (defaults to minMonth)
 }) {
+  const thisMonth = currentMonth ?? minMonth;
   const href = (m: string) =>
     `${basePath}?${new URLSearchParams({ ...extra, month: m }).toString()}`;
   const disabled = `${buttonClass("secondary", "sm")} pointer-events-none opacity-40`;
@@ -35,8 +38,8 @@ export default function MonthNav({
           Previous
         </span>
       )}
-      {month !== minMonth && (
-        <Link href={href(minMonth)} className={buttonClass("ghost", "sm")}>
+      {month !== thisMonth && (
+        <Link href={href(thisMonth)} className={buttonClass("ghost", "sm")}>
           This month
         </Link>
       )}

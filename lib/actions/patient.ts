@@ -9,12 +9,14 @@ import { createClient } from "@/lib/supabase/server";
 
 const idInput = z.coerce.number().int().positive();
 
+// Where the booking is happening (needed to send the patient back to the right calendar).
 const whereInput = z.object({
   slotId: idInput,
   doctor: z.string().regex(/^\d*$/),
   date: z.string().regex(/^(\d{4}-\d{2}-\d{2})?$/),
 });
 
+// What the patient typed on the confirmation step.
 const detailInput = z.object({
   reason: z.enum(
     Object.keys(VISIT_REASONS) as [VisitReason, ...VisitReason[]],
@@ -60,6 +62,9 @@ export async function bookSlot(formData: FormData) {
     p_reason: detail.data.reason,
     p_note: detail.data.note || null,
   });
+
+  // PR001 = the database says the profile is incomplete: finish it first, then return to this step.
+  if (error?.code === "PR001") redirect(`/profile?next=${enc(confirmUrl)}`);
 
   if (error) {
     // P0001 = a rule we wrote (safe to show). 23505 = the one-confirmed-per-slot safety net.
