@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Notice } from "../ui";
 import { buttonClass, inputClass } from "@/constants";
+import { rememberThisDevice } from "@/lib/device";
 
 export default function Verify2faForm({ home }: { home: string }) {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function Verify2faForm({ home }: { home: string }) {
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [remember, setRemember] = useState(false);
 
   useEffect(() => {
     createClient()
@@ -35,6 +37,8 @@ export default function Verify2faForm({ home }: { home: string }) {
       setBusy(false);
       return;
     }
+    if (remember) await rememberThisDevice();
+
     router.replace(home);
     router.refresh();
   }
@@ -59,6 +63,21 @@ export default function Verify2faForm({ home }: { home: string }) {
           autoFocus
           className={`${inputClass} block w-full text-center text-lg tracking-widest`}
         />
+      </label>
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={remember}
+          onChange={(e) => setRemember(e.target.checked)}
+          className="mt-0.5 h-4 w-4 accent-brand-600"
+        />
+        <span>
+          Remember this device for 30 days
+          <span className="block text-xs text-muted">
+            Only on your own phone or computer. You will not be asked for a code
+            here until then.
+          </span>
+        </span>
       </label>
       <button
         disabled={busy || !factorId || code.length !== 6}

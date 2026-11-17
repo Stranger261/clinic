@@ -1,3 +1,5 @@
+"use client";
+
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useEffect, useState } from "react";
@@ -16,6 +18,8 @@ export default function TwoFactor({ disabled }: { disabled: boolean }) {
   const [message, setMessage] = useState<Message | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmOff, setConfirmOff] = useState(false);
+  const [needsCode, setNeedsCode] = useState(false);
+  const [offCode, setOffCode] = useState("");
 
   const load = useCallback(async () => {
     const { data, error } = await createClient().auth.mfa.listFactors();
@@ -102,8 +106,32 @@ export default function TwoFactor({ disabled }: { disabled: boolean }) {
     setMessage(null);
   }
 
+  async function askToTurnOff() {
+    const { data } =
+      await createClient().auth.mfa.getAuthenticatorAssuranceLevel();
+    setNeedsCode(data?.currentLevel !== "aal2");
+    setOffCode("");
+    setConfirmOff(true);
+  }
+
   async function turnOff(factorId: string) {
     setBusy(true);
+    setMessage(null);
+    const supabase = createClient();
+    if (needsCode) {
+      const { error: stepUpError } = await supabase.auth.mfa.challengeAndVerify(
+        { factorId, code: offCode.trim() },
+      );
+      if (stepUpError) {
+        setMessage({
+          kind: "error",
+          text: "That code did not work. Check your authenticator app and try again.",
+        });
+        setOffCode("");
+        setBusy(false);
+        return;
+      }
+    }
     const { error } = await createClient().auth.mfa.unenroll({ factorId });
     if (error) {
       setMessage({
@@ -200,6 +228,12 @@ export default function TwoFactor({ disabled }: { disabled: boolean }) {
           <ol className="list-decimal space-y-4 pl-5 text-sm">
             <li>
               Scan this code with your authenticator app.
+              <p className="mt-2 text-xs text-muted">
+                Cannot scan? Enter this key in the app instead:{" "}
+                <span className="select-all break-all font-mono text-ink">
+                  {setup.secret}
+                </span>
+              </p>
               <div className="mt-2 inline-block rounded-xl border border-line bg-white p-2">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -209,12 +243,6 @@ export default function TwoFactor({ disabled }: { disabled: boolean }) {
                   height={176}
                 />
               </div>
-              <p className="mt-2 text-xs text-muted">
-                Cannot scan? Enter this key in the app instead:{" "}
-                <span className="select-all break-all font-mono text-ink">
-                  {setup.secret}
-                </span>
-              </p>
             </li>
             <li>
               Enter the 6-digit code the app shows.

@@ -3,10 +3,19 @@ import SubmitButton from "@/components/submit-button";
 import { Card, Notice, PageHeader } from "@/components/ui";
 import { signOutEverywhere } from "@/lib/actions/auth";
 import { getProfile } from "@/lib/auth";
+import { formatDay } from "@/lib/clinic";
 import { DEMO_EMAILS, demoEnabled } from "@/lib/demo";
+import { revokeDevice } from "@/lib/device";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Settings" };
+type Device = {
+  id: string;
+  label: string;
+  created_at: string;
+  expires_at: string;
+  is_current: boolean;
+};
 
 export default async function SettingsPage() {
   const me = await getProfile();
@@ -21,6 +30,9 @@ export default async function SettingsPage() {
   // The demo accounts are shared by every visitor, so settings that affect the whole account are off for them.
   const isDemo =
     demoEnabled() && (Object.values(DEMO_EMAILS) as string[]).includes(email);
+  const devices = isDemo
+    ? []
+    : (((await supabase.rpc("list_trusted_devices")).data ?? []) as Device[]);
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -68,6 +80,58 @@ export default async function SettingsPage() {
         </div>
         <TwoFactor disabled={isDemo} />
       </Card>
+
+      {!isDemo && (
+        <Card className="space-y-3">
+          <div>
+            <h2 className="font-semibold">Remembered devices</h2>
+            <p className="text-sm text-muted">
+              Browsers where you chose to skip the code for 30 days. Remove any
+              you no longer use or do not recognise.
+            </p>
+          </div>
+          {devices.length === 0 ? (
+            <p className="text-sm text-muted">
+              None. When you enter your code at sign-in, you can choose
+              &quot;Remember this device&quot;.
+            </p>
+          ) : (
+            <ul className="divide-y divide-line overflow-hidden rounded-xl border border-line">
+              {devices.map((d) => (
+                <li
+                  key={d.id}
+                  className="flex flex-wrap items-center justify-between gap-3 p-3"
+                >
+                  <div>
+                    <p className="font-medium">
+                      {d.label}
+                      {d.is_current && (
+                        <span className="ml-2 rounded-full bg-brand-100 px-2 py-0.5 text-xs font-semibold text-brand-800">
+                          This device
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-xs text-muted">
+                      Added {formatDay(d.created_at)}. Expires{" "}
+                      {formatDay(d.expires_at)}.
+                    </p>
+                  </div>
+                  <form action={revokeDevice}>
+                    <input type="hidden" name="id" value={d.id} />
+                    <SubmitButton
+                      variant="danger"
+                      size="sm"
+                      pendingLabel="Removing..."
+                    >
+                      Remove
+                    </SubmitButton>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      )}
 
       <Card className="space-y-3">
         <h2 className="font-semibold">Devices</h2>

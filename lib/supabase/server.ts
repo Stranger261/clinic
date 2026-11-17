@@ -1,9 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { DEVICE_COOKIE } from "../actions/device";
 
 // For Server Components, Server Actions and Route Handlers.
 export const createClient = async () => {
   const cookieStore = await cookies();
+
+  const deviceToken = cookieStore.get(DEVICE_COOKIE)?.value;
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -24,6 +27,11 @@ export const createClient = async () => {
           }
         },
       },
+      global: deviceToken
+        ? {
+            headers: { "x-device-token": deviceToken },
+          }
+        : undefined,
     },
   );
 };
