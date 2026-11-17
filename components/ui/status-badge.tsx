@@ -5,7 +5,7 @@ export function StatusBadge({ status }: { status: keyof typeof badges }) {
     <span
       className={`rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize ${badges[status]}`}
     >
-      {status}
+      {status.replace("_", " ")}
     </span>
   );
 }

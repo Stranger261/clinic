@@ -5,13 +5,15 @@ import { createClient } from "@/lib/supabase/server";
 // We swap the code for a session, then send each role to its own home page.
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
+  console.log(searchParams);
+  console.log(origin);
   const code = searchParams.get("code");
 
   if (!code) return NextResponse.redirect(`${origin}/login?error=auth`);
 
   const supabase = await createClient();
   const { error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error) return NextResponse.redirect(`${origin}/login?error=auth`);
+  if (error) return NextResponse.redirect(`${origin}/login?.error=auth`);
 
   const { data } = await supabase.auth.getClaims();
   const { data: profile } = await supabase
@@ -20,6 +22,13 @@ export async function GET(request: NextRequest) {
     .eq("id", data?.claims.sub ?? "")
     .single();
 
-  const destination = profile?.role === "admin" ? "/admin" : profile?.role === "doctor" ? "/doctor" : "/";
+  const destination =
+    profile?.role === "admin"
+      ? "/admin"
+      : profile?.role === "doctor"
+        ? "/doctor"
+        : profile?.role === "patient"
+          ? "/dashboard"
+          : "/";
   return NextResponse.redirect(`${origin}${destination}`);
 }

@@ -2,9 +2,11 @@ import AppShell from "@/components/app-shell";
 import { requireRole } from "@/lib/auth";
 
 const links = [
+  { href: "/dashboard", label: "Dashboard" },
   { href: "/book", label: "Book" },
   { href: "/appointments", label: "My appointments" },
   { href: "/profile", label: "Profile" },
+  { href: "/settings", label: "Settings" },
 ];
 
 export default async function PatientLayout({

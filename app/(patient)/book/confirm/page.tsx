@@ -84,7 +84,10 @@ export default async function ConfirmPage({
   return (
     <div className="mx-auto max-w-xl">
       {live}
-      <Link href={back} className="text-sm text-muted hover:text-ink">
+      <Link
+        href={back}
+        className="text-sm text-brand-600 underline hover:text-ink"
+      >
         Back to the calendar
       </Link>
       <div className="mt-4">

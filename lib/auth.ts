@@ -20,10 +20,18 @@ export const getProfile = async (): Promise<Profile | null> => {
   return (profile as Profile | null) ?? null;
 };
 
+export const homeFor = (role: Role) =>
+  role === "admin" ? "/admin" : role === "doctor" ? "/doctor" : "/dashboard";
+
 // Call at the top of any protected layout or page.
 export const requireRole = async (allowed: Role[]): Promise<Profile> => {
   const profile = await getProfile();
   if (!profile) redirect("/login");
   if (!allowed.includes(profile.role)) redirect("/");
+
+  const supabase = await createClient();
+  const { data: satisfied } = await supabase.rpc("mfa_satisfied");
+  if (satisfied === false) redirect("/verify-2fa");
+
   return profile;
 };

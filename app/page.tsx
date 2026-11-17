@@ -10,7 +10,7 @@ import Faq from "@/components/faq";
 import { FAQ, FEATURES, STEPS } from "@/constants";
 
 const dashboardFor = (role: string) =>
-  role === "admin" ? "/admin" : role === "doctor" ? "/doctor" : "/book";
+  role === "admin" ? "/admin" : role === "doctor" ? "/doctor" : "/dashboard";
 
 export default async function Home() {
   const profile = await getProfile();

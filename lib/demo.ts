@@ -8,7 +8,7 @@ export const DEMO_EMAILS: Record<DemoRole, string> = {
 };
 
 export const DEMO_HOME: Record<DemoRole, string> = {
-  patient: "/book",
+  patient: "/dashboard",
   doctor: "/doctor",
   admin: "/admin",
 };
