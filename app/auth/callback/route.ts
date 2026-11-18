@@ -5,8 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 // We swap the code for a session, then send each role to its own home page.
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
-  console.log(searchParams);
-  console.log(origin);
   const code = searchParams.get("code");
 
   if (!code) return NextResponse.redirect(`${origin}/login?error=auth`);
@@ -22,13 +20,13 @@ export async function GET(request: NextRequest) {
     .eq("id", data?.claims.sub ?? "")
     .single();
 
-  const destination =
-    profile?.role === "admin"
-      ? "/admin"
-      : profile?.role === "doctor"
-        ? "/doctor"
-        : profile?.role === "patient"
-          ? "/dashboard"
-          : "/";
+  const homes: Record<string, string> = {
+    admin: "/admin",
+    doctor: "/doctor",
+    nurse: "/nurse",
+    receptionist: "/reception",
+    patient: "/dashboard",
+  };
+  const destination = homes[profile?.role ?? ""] ?? "/";
   return NextResponse.redirect(`${origin}${destination}`);
 }

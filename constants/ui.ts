@@ -1,7 +1,5 @@
-// Small shared building blocks, so the look is defined once.
-
-type Variant = "primary" | "secondary" | "ghost" | "danger";
-type Size = "md" | "sm" | "xs";
+export type Variant = "primary" | "secondary" | "ghost" | "danger";
+export type Size = "md" | "sm" | "xs";
 
 const base =
   "inline-flex items-center justify-center rounded-full font-semibold transition disabled:opacity-50";
@@ -43,4 +41,8 @@ export const badges = {
   cancelled: "bg-slate-200 text-slate-700",
   completed: "bg-brand-100 text-brand-800",
   no_show: "bg-amber-100 text-amber-900",
+  not_arrived: "bg-slate-200 text-slate-700",
+  checked_in: "bg-sky-100 text-sky-800",
+  ready: "bg-brand-100 text-brand-800",
+  in_consultation: "bg-amber-100 text-amber-900",
 } as const;

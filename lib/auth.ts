@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export type Role = "admin" | "doctor" | "patient";
+export type Role = "admin" | "doctor" | "patient" | "nurse" | "receptionist";
 export type Profile = { id: string; full_name: string; role: Role };
 
 // The signed-in user's profile, or null when nobody is signed in.
@@ -20,8 +20,14 @@ export const getProfile = async (): Promise<Profile | null> => {
   return (profile as Profile | null) ?? null;
 };
 
-export const homeFor = (role: Role) =>
-  role === "admin" ? "/admin" : role === "doctor" ? "/doctor" : "/dashboard";
+const HOMES: Record<Role, string> = {
+  admin: "/admin",
+  doctor: "/doctor",
+  nurse: "/nurse",
+  receptionist: "/reception",
+  patient: "/dashboard",
+};
+export const homeFor = (role: Role) => HOMES[role];
 
 // Call at the top of any protected layout or page.
 export const requireRole = async (allowed: Role[]): Promise<Profile> => {

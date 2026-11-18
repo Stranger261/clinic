@@ -4,11 +4,15 @@ import { requireRole } from "@/lib/auth";
 const links = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/departments", label: "Departments" },
-  { href: "/admin/doctors", label: "Doctors" },
+  { href: "/admin/doctors", label: "Staff" },
   { href: "/admin/requests", label: "Reschedule requests" },
 ];
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const profile = await requireRole(["admin"]);
   return (
     <AppShell title="Admin" name={profile.full_name} links={links}>
