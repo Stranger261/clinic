@@ -62,10 +62,22 @@ export default async function BookPage({
     );
   }
 
-  const { data: slotData } = await supabase.rpc("calendar_slots", {
-    p_doctor_id: doctor.doctor_id,
-    p_from: firstOfMonth(month),
-    p_days: daysInMonth(month),
+  const { data: slotData, error: slotError } = await supabase.rpc(
+    "calendar_slots",
+    {
+      p_doctor_id: doctor.doctor_id,
+      p_from: firstOfMonth(month),
+      p_days: daysInMonth(month),
+    },
+  );
+
+  console.log("PATIENT CALENDAR DEBUG:", {
+    doctorId: doctor.doctor_id,
+    month,
+    from: firstOfMonth(month),
+    days: daysInMonth(month),
+    slotData,
+    slotError,
   });
   const slots = (slotData ?? []) as CalSlot[];
 
@@ -93,6 +105,8 @@ export default async function BookPage({
       ...(byDepartment.get(d.department_name) ?? []),
       d,
     ]);
+
+  console.log(stats);
 
   return (
     <>

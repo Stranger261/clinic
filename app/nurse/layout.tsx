@@ -1,7 +1,10 @@
 import AppShell from "@/components/app-shell";
 import { requireRole } from "@/lib/auth";
 
-const links = [{ href: "/nurse", label: "Waiting for vitals" }];
+const links = [
+  { href: "/nurse", label: "Waiting for vitals" },
+  { href: "/nurse/settings", label: "Settings" },
+];
 
 export default async function NurseLayout({
   children,

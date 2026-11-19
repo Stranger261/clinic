@@ -194,9 +194,10 @@ export default function TwoFactor({ disabled }: { disabled: boolean }) {
               {busy ? "Starting..." : "Set up"}
             </button>
           )}
+
           {on && !confirmOff && (
             <button
-              onClick={() => setConfirmOff(true)}
+              onClick={() => void askToTurnOff()}
               className={buttonClass("danger", "sm")}
             >
               Turn off

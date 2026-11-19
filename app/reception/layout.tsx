@@ -1,7 +1,10 @@
 import AppShell from "@/components/app-shell";
 import { requireRole } from "@/lib/auth";
 
-const links = [{ href: "/reception", label: "Today" }];
+const links = [
+  { href: "/reception", label: "Today" },
+  { href: "/reception/settings", label: "Settings" },
+];
 
 export default async function ReceptionLayout({
   children,

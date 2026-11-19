@@ -6,6 +6,7 @@ const links = [
   { href: "/admin/departments", label: "Departments" },
   { href: "/admin/doctors", label: "Staff" },
   { href: "/admin/requests", label: "Reschedule requests" },
+  { href: "/admin/settings", label: "Settings" },
 ];
 
 export default async function AdminLayout({

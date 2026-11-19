@@ -42,7 +42,7 @@ export default function DoctorCalendar({
 }) {
   const first = firstOfMonth(month);
   const last = lastOfMonth(month);
-  const nowMs = useNow(); // 0 until the browser knows the time
+  const nowMs = useNow();
 
   const [slots, setSlots] = useState(() => toMap(initialSlots));
   const [prevInitial, setPrevInitial] = useState(initialSlots);
@@ -262,24 +262,15 @@ export default function DoctorCalendar({
                           </form>
                         )}
                         {/* Once the visit has started, the doctor records how it went (and can correct it). */}
-                        {started && s.outcome !== "completed" && (
-                          <form action={setOutcome}>
-                            <input type="hidden" name="id" value={s.slot_id} />
-                            <input
-                              type="hidden"
-                              name="outcome"
-                              value="completed"
-                            />
-                            <SubmitButton
-                              size="sm"
-                              variant={s.outcome ? "secondary" : "primary"}
-                              pendingLabel="Saving..."
-                            >
-                              {s.outcome ? "Mark completed" : "Completed"}
-                            </SubmitButton>
-                          </form>
+                        {started && !s.outcome && (
+                          <Link
+                            href="/doctor/queue"
+                            className={buttonClass("secondary", "sm")}
+                          >
+                            Open Patients today
+                          </Link>
                         )}
-                        {started && s.outcome !== "no_show" && (
+                        {started && !s.outcome && (
                           <form action={setOutcome}>
                             <input type="hidden" name="id" value={s.slot_id} />
                             <input
@@ -292,7 +283,7 @@ export default function DoctorCalendar({
                               variant="secondary"
                               pendingLabel="Saving..."
                             >
-                              {s.outcome ? "Mark no-show" : "No-show"}
+                              No-show
                             </SubmitButton>
                           </form>
                         )}

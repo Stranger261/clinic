@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { safe } from "@/utils/safe";
 
 const id = z.coerce.number().int().positive();
 
@@ -21,9 +22,6 @@ const returnTo = z.enum(["/doctor/requests", "/admin/requests"]);
 const note = z.string().trim().max(300);
 
 const enc = encodeURIComponent;
-
-const safe = (error: { code?: string; message: string }, fallback: string) =>
-  error.code === "P0001" ? error.message : fallback;
 
 export const requestReschedule = async (formData: FormData) => {
   await requireRole(["patient"]);

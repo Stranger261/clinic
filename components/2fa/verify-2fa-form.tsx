@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Notice } from "../ui";
 import { buttonClass, inputClass } from "@/constants";
-import { rememberThisDevice } from "@/lib/device";
+import { rememberThisDevice } from "@/lib/actions/device";
 
 export default function Verify2faForm({ home }: { home: string }) {
   const router = useRouter();

@@ -72,11 +72,18 @@ export default function PatientCalendar({
 
     // Ask the database for the truth. Used when the live connection starts, restarts, or is down.
     const refetch = async () => {
-      const { data } = await supabase.rpc("calendar_slots", {
+      const { data, error } = await supabase.rpc("calendar_slots", {
         p_doctor_id: doctorId,
         p_from: first,
         p_days: days,
       });
+
+      if (error) {
+        console.error("Patient calendar refetch failed:", error);
+        return;
+      }
+
+      console.log("Patient calendar refetched:", data?.length);
       if (data) commit(toMap(data as CalSlot[]));
     };
 

@@ -1,5 +1,6 @@
 import AutoRefresh from "@/components/auto-refresh";
-import { EmptyState, Notice, PageHeader } from "@/components/ui";
+import { EmptyState, Notice, PageHeader, StatusBadge } from "@/components/ui";
+import VitalsForm from "@/components/vitals/vital-form";
 import { Sex, SEX_OPTIONS } from "@/constants";
 import { formatTime, reasonLabel } from "@/lib/clinic";
 import { createClient } from "@/lib/supabase/server";
@@ -18,6 +19,8 @@ type Row = {
   visit_reason: string | null;
   visit_note: string | null;
   checked_in_at: string;
+  stage: "checked_in" | "ready";
+  vitals_recorded_at: string | null;
 };
 
 export default async function NursePage() {
@@ -43,10 +46,11 @@ export default async function NursePage() {
       {queue.length === 0 ? (
         <EmptyState>No one is waiting right now.</EmptyState>
       ) : (
-        <ul className="space-y-3">
+        <ul className="space-y-4">
           {queue.map((r) => {
             const hasAllergy =
               Boolean(r.allergies) && !/^none/i.test(r.allergies ?? "");
+            const sent = r.stage === "ready";
             return (
               <li
                 key={r.visit_id}
@@ -73,9 +77,12 @@ export default async function NursePage() {
                       {formatTime(r.slot_start)}
                     </p>
                   </div>
-                  <p className="text-xs text-muted">
-                    Arrived {formatTime(r.checked_in_at)}
-                  </p>
+                  <div className="text-right">
+                    <StatusBadge status={r.stage} />
+                    <p className="mt-1 text-xs text-muted">
+                      Arrived {formatTime(r.checked_in_at)}
+                    </p>
+                  </div>
                 </div>
                 <p className="mt-2 text-sm text-muted">
                   Reason: {reasonLabel(r.visit_reason)}
@@ -86,6 +93,25 @@ export default async function NursePage() {
                 >
                   Allergies: {r.allergies || "None listed"}
                 </p>
+
+                <div className="mt-4 border-t border-line pt-4">
+                  {sent ? (
+                    <details>
+                      <summary className="cursor-pointer text-sm font-semibold text-brand-700 underline">
+                        Sent to the doctor
+                        {r.vitals_recorded_at
+                          ? ` at ${formatTime(r.vitals_recorded_at)}`
+                          : ""}
+                        . Record corrected vitals
+                      </summary>
+                      <div className="mt-4">
+                        <VitalsForm visitId={r.visit_id} corrected />
+                      </div>
+                    </details>
+                  ) : (
+                    <VitalsForm visitId={r.visit_id} />
+                  )}
+                </div>
               </li>
             );
           })}

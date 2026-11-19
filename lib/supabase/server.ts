@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { DEVICE_COOKIE } from "../actions/device";
+import { DEVICE_COOKIE } from "../device";
 
 // For Server Components, Server Actions and Route Handlers.
 export const createClient = async () => {
