@@ -24,7 +24,7 @@ export const inputClass =
 // Hover lift for card-like items: they rise a little and gain a soft shadow under the pointer.
 // Tailwind only applies hover styles on devices that really have hover, so phones are unaffected.
 export const liftClass =
-  "transition-[transform,box-shadow,border-color] duration-200 ease-out hover:-translate-y-1 hover:border-brand-300 hover:shadow-lg hover:shadow-brand-600/10 motion-reduce:hover:translate-y-0";
+  "transform-gpu transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-2 hover:scale-[1.02] hover:border-brand-300 hover:shadow-xl hover:shadow-brand-600/10 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:scale-100 cursor-pointer";
 
 export const notices = {
   error: "bg-red-50 text-red-800",

@@ -46,3 +46,6 @@ export const FAQ = [
     a: "No. This is a demo project with fake data. Please do not enter real personal or medical information.",
   },
 ];
+
+export const navItemClass =
+  "rounded-full px-3 py-2 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]";

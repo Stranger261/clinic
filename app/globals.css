@@ -41,3 +41,8 @@ html {
     animation: none !important;
   }
 }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem;
+}

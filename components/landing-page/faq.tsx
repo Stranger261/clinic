@@ -24,7 +24,7 @@ export default function Faq({ items }: { items: FaqItem[] }) {
                 aria-expanded={isOpen}
                 aria-controls={panelId}
                 onClick={() => setOpen(isOpen ? null : i)}
-                className="flex w-full items-center justify-between gap-4 p-5 text-left font-semibold"
+                className="flex w-full items-center justify-between gap-4 p-5 text-left font-semibold cursor-pointer"
               >
                 {item.q}
                 <span

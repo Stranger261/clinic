@@ -1,61 +1,14 @@
 import Link from "next/link";
-import Faq from "@/components/faq";
+import Faq from "@/components/landing-page/faq";
 import Logo from "@/components/logo";
 import SafeImage from "@/components/safe-image";
 import { ButtonLink, Card } from "@/components/ui";
 import { getProfile } from "@/lib/auth";
 import { BRAND, SERVICES } from "@/lib/brand";
 import { demoEnabled } from "@/lib/demo";
-import { liftClass } from "@/constants";
-
-const STEPS = [
-  {
-    title: "Choose a day",
-    text: "Pick a date and a department to see every open time across our doctors.",
-  },
-  {
-    title: "Pick a time",
-    text: "Select a slot and tell us why you are visiting, in a few clicks.",
-  },
-  {
-    title: "Manage it online",
-    text: "See your appointments, cancel, or ask to reschedule from your account.",
-  },
-];
-
-const FEATURES = [
-  {
-    title: "Open times at a glance",
-    text: "Only slots that are really free are shown, so there is no back and forth.",
-  },
-  {
-    title: "Flexible when plans change",
-    text: "Cancel up to 24 hours before. Inside that window, request an urgent reschedule for staff to review.",
-  },
-  {
-    title: "Your doctor is prepared",
-    text: "Choose a reason for the visit and add a short note, so your doctor knows what to expect.",
-  },
-];
-
-const FAQ = [
-  {
-    q: "Can I cancel or change my appointment?",
-    a: "You can cancel up to 24 hours before the visit. Closer than that, you can send an emergency reschedule request with a reason, and a doctor or admin will review it.",
-  },
-  {
-    q: "Do I need an account to book?",
-    a: "Yes, you sign in so your appointments stay private and easy to manage. In the demo, you can try every role without an account.",
-  },
-  {
-    q: "How do follow-up visits work?",
-    a: "Your doctor advises when to come back during your visit. You then book the exact time yourself.",
-  },
-  {
-    q: "Is this a real clinic?",
-    a: "No. This is a demo project with fake data. Please do not enter real personal or medical information.",
-  },
-];
+import { FAQ, FEATURES, liftClass, navItemClass, STEPS } from "@/constants";
+import NavbarLinks from "@/components/landing-page/NavbarLink";
+import Reveal from "@/components/landing-page/Reveal";
 
 const HOMES: Record<string, string> = {
   admin: "/admin",
@@ -73,25 +26,28 @@ export default async function Home() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b border-line bg-canvas/80 backdrop-blur">
-        <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
+      <header className="sticky top-3 z-40 px-4">
+        <nav className="mx-auto flex h-16 max-w-300 items-center justify-between rounded-full border border-slate-200/80 bg-white/95 px-6 shadow-[0_3px_14px_rgba(15,23,42,0.06)] backdrop-blur-xl">
+          {/* Logo */}
           <Link href="/" aria-label={`${BRAND.name} home`}>
             <Logo />
           </Link>
-          <div className="hidden items-center gap-6 text-sm text-muted md:flex">
-            <a href="#how" className="hover:text-ink">
-              How it works
-            </a>
-            <a href="#departments" className="hover:text-ink">
-              Departments
-            </a>
-            <a href="#faq" className="hover:text-ink">
-              FAQ
-            </a>
+
+          {/* Navigation */}
+          <NavbarLinks />
+
+          {/* CTA */}
+          <div className="flex items-center gap-3">
+            {/* Theme toggle */}
+
+            <ButtonLink href={primaryHref}>
+              {profile
+                ? "Go to your account"
+                : demo
+                  ? "Try the demo"
+                  : "Sign in"}
+            </ButtonLink>
           </div>
-          <ButtonLink href={primaryHref}>
-            {profile ? "Go to your account" : demo ? "Try the demo" : "Sign in"}
-          </ButtonLink>
         </nav>
       </header>
 
@@ -142,32 +98,38 @@ export default async function Home() {
           className="scroll-mt-20 border-y border-line bg-surface"
         >
           <div className="mx-auto max-w-6xl px-5 py-16">
-            <h2 className="text-3xl font-semibold tracking-tight">
-              How it works
-            </h2>
+            <Reveal>
+              <h2 className="text-3xl font-semibold tracking-tight">
+                How it works
+              </h2>
+            </Reveal>
             <ol className="mt-8 grid gap-6 md:grid-cols-3">
               {STEPS.map((s, i) => (
-                <li key={s.title} className="flex gap-4">
-                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-100 font-semibold text-brand-700">
-                    {i + 1}
-                  </span>
-                  <div>
-                    <h3 className="font-semibold">{s.title}</h3>
-                    <p className="mt-1 text-muted">{s.text}</p>
-                  </div>
-                </li>
+                <Reveal key={s.title} delay={i * 0.12}>
+                  <li className="flex gap-4">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-brand-100 font-semibold text-brand-700">
+                      {i + 1}
+                    </span>
+                    <div>
+                      <h3 className="font-semibold">{s.title}</h3>
+                      <p className="mt-1 text-muted">{s.text}</p>
+                    </div>
+                  </li>
+                </Reveal>
               ))}
             </ol>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-5 py-16">
+        <section id="features" className="mx-auto max-w-6xl px-5 py-16">
           <div className="grid gap-5 md:grid-cols-3">
-            {FEATURES.map((f) => (
-              <Card key={f.title} lift>
-                <h3 className="font-semibold">{f.title}</h3>
-                <p className="mt-2 text-muted">{f.text}</p>
-              </Card>
+            {FEATURES.map((f, i) => (
+              <Reveal key={f.title} delay={i * 0.12}>
+                <Card lift>
+                  <h3 className="font-semibold">{f.title}</h3>
+                  <p className="mt-2 text-muted">{f.text}</p>
+                </Card>
+              </Reveal>
             ))}
           </div>
         </section>
@@ -176,29 +138,33 @@ export default async function Home() {
           id="departments"
           className="scroll-mt-20 border-y border-line bg-surface"
         >
-          <div className="mx-auto max-w-6xl px-5 py-16">
-            <h2 className="text-3xl font-semibold tracking-tight">
-              Our departments
-            </h2>
-            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {SERVICES.map((s) => (
-                <div
-                  key={s.title}
-                  className={`rounded-2xl border border-transparent bg-brand-50 p-5 ${liftClass}`}
-                >
-                  <h3 className="font-semibold text-brand-800">{s.title}</h3>
-                  <p className="mt-1 text-sm text-muted">{s.text}</p>
-                </div>
-              ))}
+          <Reveal>
+            <div className="mx-auto max-w-6xl px-5 py-16">
+              <h2 className="text-3xl font-semibold tracking-tight">
+                Our departments
+              </h2>
+              <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                {SERVICES.map((s) => (
+                  <div
+                    key={s.title}
+                    className={`rounded-2xl border border-transparent bg-brand-50 p-5 ${liftClass}`}
+                  >
+                    <h3 className="font-semibold text-brand-800">{s.title}</h3>
+                    <p className="mt-1 text-sm text-muted">{s.text}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          </Reveal>
         </section>
 
         <section id="faq" className="mx-auto max-w-3xl scroll-mt-20 px-5 py-16">
-          <h2 className="text-3xl font-semibold tracking-tight">Questions</h2>
-          <div className="mt-8">
-            <Faq items={FAQ} />
-          </div>
+          <Reveal>
+            <h2 className="text-3xl font-semibold tracking-tight">Questions</h2>
+            <div className="mt-8">
+              <Faq items={FAQ} />
+            </div>
+          </Reveal>
         </section>
 
         <section className="mx-auto max-w-6xl px-5 pb-20">

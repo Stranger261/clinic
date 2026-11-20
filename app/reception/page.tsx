@@ -41,9 +41,10 @@ export default async function ReceptionPage({
   const date = isDateKey(params.date) ? params.date : today; // the URL is untrusted
 
   const supabase = await createClient();
-  const { data } = await supabase.rpc("reception_schedule", { p_date: date });
+  const { data } = await supabase.rpc("reception_schedule", {
+    p_date: date,
+  });
   const rows = (data ?? []) as Row[];
-
   return (
     <>
       <AutoRefresh />
